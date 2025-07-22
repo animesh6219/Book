@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Hindi Story PWA</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1976d2">
+  <link rel="icon" href="icon-192.png">
+  <style>
+    body { font-family: 'Noto Sans', Arial, sans-serif; background: #fafafa; color: #222; margin: 0; padding: 0; }
+    main { max-width: 600px; margin: 0 auto; padding: 1em; }
+    h1, h2 { color: #1976d2; margin-bottom: 0.5em; }
+    section { background: #fff; margin-bottom: 1em; padding: 1em; border-radius: 8px; box-shadow: 0 2px 6px #eee; }
+    button { background: #1976d2; color: #fff; border: none; border-radius: 4px; padding: 0.5em 1.2em; font-size: 1em; cursor: pointer; margin-top: 0.5em; }
+    button:active { background: #115293; }
+    .answer { margin-top: 0.3em; }
+    .correct { color: green; }
+    .wrong { color: red; }
+    ul { list-style: none; padding-left: 0; }
+    li { background: #f1f1f1; margin-bottom: 0.2em; padding: 0.4em; border-radius: 4px; }
+    #installBtn { display: none; margin-top: 1em; }
+    @media (max-width: 700px) { main { padding: 0.3em; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>हिंदी कहानी PWA</h1>
+    <section>
+      <h2>कहानी</h2>
+      <p id="story" style="font-size:1.2em;">
+        एक बार की बात है, एक छोटा सा बच्चा जंगल में गया। उसने वहाँ एक सुंदर फूल देखा और बहुत खुश हुआ।
+        उसने फूल को तोड़ा, लेकिन तभी एक तितली आई और बोली, "फूलों को मत तोड़ो, वे सब के लिए हैं।"
+        बच्चा समझ गया और फूल को वापस रख दिया।
+      </p>
+    </section>
+    <section>
+      <h2>प्रश्नोत्तर</h2>
+      <form id="quizForm"></form>
+      <button id="checkBtn">जवाब जाँचें</button>
+    </section>
+    <section>
+      <h2>शब्दावली</h2>
+      <ul>
+        <li>जंगल - Forest</li>
+        <li>तितली - Butterfly</li>
+        <li>फूल - Flower</li>
+        <li>तोड़ा - Broke</li>
+      </ul>
+    </section>
+    <button id="installBtn">Install App</button>
+  </main>
+  <script>
+    // Quiz data
+    const questions = [
+      { question: "बच्चा कहाँ गया था?", options: ["बाजार", "जंगल", "घर", "स्कूल"], answer: "जंगल" },
+      { question: "बच्चे ने क्या देखा?", options: ["पेड़", "फूल", "तितली", "पक्षी"], answer: "फूल" },
+      { question: "तितली ने बच्चे से क्या कहा?", options: ["फूल तोड़ो", "फूलों को मत तोड़ो", "घर चलो", "खेलो"], answer: "फूलों को मत तोड़ो" }
+    ];
+    const quizForm = document.getElementById('quizForm');
+    let selected = Array(questions.length).fill(-1);
+
+    // Render questions
+    questions.forEach((q, idx) => {
+      const div = document.createElement('div');
+      div.style.marginBottom = "18px";
+      div.innerHTML = `<p><b>${q.question}</b></p>` +
+        q.options.map((opt, oidx) => `<label>
+          <input type="radio" name="q${idx}" value="${oidx}" onchange="window.selectAnswer(${idx},${oidx})">
+          ${opt}
+        </label><br>`).join('') +
+        `<div class="answer" id="ans${idx}"></div>`;
+      quizForm.appendChild(div);
+    });
+
+    window.selectAnswer = function(idx, oidx) {
+      selected[idx] = oidx;
+      document.getElementById('ans'+idx).innerHTML = "";
+    };
+
+    document.getElementById('checkBtn').onclick = function() {
+      questions.forEach((q, idx) => {
+        const ansDiv = document.getElementById('ans'+idx);
+        if (selected[idx] === -1) {
+          ansDiv.innerHTML = '<span class="wrong">उत्तर नहीं चुना!</span>';
+        } else if (q.options[selected[idx]] === q.answer) {
+          ansDiv.innerHTML = '<span class="correct">सही उत्तर!</span>';
+        } else {
+          ansDiv.innerHTML = `<span class="wrong">गलत उत्तर! सही उत्तर: ${q.answer}</span>`;
+        }
+      });
+    };
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+
+    // Install Button
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'inline-block';
+    });
+    installBtn.addEventListener('click', async () => {
+      installBtn.style.display = 'none';
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    });
+    window.addEventListener('appinstalled', () => { installBtn.style.display = 'none'; });
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "short_name": "HindiStory",
+  "name": "Hindi Story for Students",
+  "description": "Read Hindi stories, answer questions, and learn.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1976d2"
+}
